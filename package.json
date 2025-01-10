@@ -18,6 +18,7 @@
   "homepage": "https://github.com/MRxTHUNDER/admin-portal#readme",
   "description": "",
   "dependencies": {
+    "mongoose": "^8.9.4",
     "typescript": "^5.7.3"
   }
 }

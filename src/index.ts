@@ -4,6 +4,7 @@ import dotenv from 'dotenv'
 import bodyParser from 'body-parser'
 import { PORT } from './config/config';
 import mongoConnect from './db/db';
+import adminRoute from './routes/Admin'
 
 dotenv.config();
 
@@ -25,6 +26,8 @@ app.use(express.urlencoded({extended:true}));
 app.use(bodyParser.urlencoded({
     extended:false
 }));
+
+app.use("/api/admin",adminRoute);
 
 app.get("/",(_req:Request,res:Response)=>{
     res.json({

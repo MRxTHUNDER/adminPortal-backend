@@ -46,24 +46,32 @@ export async function getCandidates(req: Request, res: Response) {
 
 export async function getCandidateInterviews(req: Request, res: Response) {
   try {
-    // Extract the user ID from the request params
+    // Extract user ID, page, and limit from the request
     const { id } = req.params;
+    const page = parseInt(req.query.page as string) || 1; // Default to page 1
+    const limit = parseInt(req.query.limit as string) || 10; // Default to 10 items per page
 
-    // Validate the ID
+    // Validate the user ID
     if (!id) {
       res.status(400).json({ message: "User ID is required" });
       return;
     }
 
-    // Fetch data from both Interview collections for the user
-    const interviews = await InterviewModel.find({ userId: id });
-    const interviewsNo = await InterviewModelNo.find({ userId: id });
+    // Calculate the number of records to skip
+    const skip = (page - 1) * limit;
+
+    // Fetch data with pagination from both Interview collections
+    const interviews = await InterviewModel.find({ userId: id })
+      .skip(skip)
+      .limit(limit);
+
+    const interviewsNo = await InterviewModelNo.find({ userId: id })
+      .skip(skip)
+      .limit(limit);
 
     // If no records are found
     if (!interviews.length && !interviewsNo.length) {
-      res.status(404).json({
-        message: "No interviews found for the specified user",
-      });
+      res.status(404).json({ message: "No more interviews found" });
       return;
     }
 
@@ -97,14 +105,17 @@ export async function getCandidateInterviews(req: Request, res: Response) {
     res.status(200).json({
       message: "Success",
       data: mergedInterviews,
+      pagination: {
+        page,
+        limit,
+        hasMore: interviews.length + interviewsNo.length === limit, // Check if there are more records
+      },
     });
-    return;
   } catch (error: any) {
     console.error(error);
     res.status(500).json({
       message: "Internal server error",
       error: error.message,
     });
-    return;
   }
 }

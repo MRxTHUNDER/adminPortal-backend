@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import UserModel from "../models/UserModel";
+import InterviewModel from "../models/InterviewModel";
+import InterviewModelNo from "../models/InterviewModelNo";
 
 export async function getCandidates(req: Request, res: Response) {
   try {
@@ -42,26 +44,67 @@ export async function getCandidates(req: Request, res: Response) {
   }
 }
 
-export async function getCandidate(req:Request,res:Response) {
-    try {
-        const id = req.query;
-        const candidate = await UserModel.findById(id);
-        if(!candidate){
-            res.status(404).json({
-                message:"No candidate found"
-            })
-            return
-        }
+export async function getCandidateInterviews(req: Request, res: Response) {
+  try {
+    // Extract the user ID from the request params
+    const { id } = req.params;
 
-        res.status(200).json({
-            message:"Successful",
-            candidate
-        })
-    } catch (error:any) {
-        res.status(500).json({
-            message: "Internal server error",
-            error: error.message,
-          });
-          return
+    // Validate the ID
+    if (!id) {
+      res.status(400).json({ message: "User ID is required" });
+      return;
     }
+
+    // Fetch data from both Interview collections for the user
+    const interviews = await InterviewModel.find({ userId: id });
+    const interviewsNo = await InterviewModelNo.find({ userId: id });
+
+    // If no records are found
+    if (!interviews.length && !interviewsNo.length) {
+      res.status(404).json({
+        message: "No interviews found for the specified user",
+      });
+      return;
+    }
+
+    // Combine data from both collections
+    const mergedInterviews = [
+      ...interviews.map((interview) => ({
+        organization: interview.organization,
+        jobProfile: interview.jobProfile,
+        date: interview.date,
+        timeSlots: interview.timeSlots,
+        pricingPlans: interview.pricingPlans,
+        meetLink: interview.meetLink,
+        feedbackReport: interview.feedbackReport,
+        resume: interview.resume,
+        isVerified: interview.isVerified,
+      })),
+      ...interviewsNo.map((interviewNo) => ({
+        organization: interviewNo.organization,
+        jobProfile: interviewNo.jobProfile,
+        date: interviewNo.date,
+        timeSlots: interviewNo.timeSlots,
+        pricingPlans: interviewNo.pricingPlans,
+        meetLink: interviewNo.meetLink,
+        feedbackReport: interviewNo.feedbackReport,
+        resume: interviewNo.resume,
+        isVerified: interviewNo.isVerified,
+      })),
+    ];
+
+    // Send response
+    res.status(200).json({
+      message: "Success",
+      data: mergedInterviews,
+    });
+    return;
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
+    return;
+  }
 }

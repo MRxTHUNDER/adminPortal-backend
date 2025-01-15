@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import UserModel from "../models/UserModel";
 import InterviewModel from "../models/InterviewModel";
 import InterviewModelNo from "../models/InterviewModelNo";
+import { editInterviewSchema } from "../zod/candidates";
 
 export async function getCandidates(req: Request, res: Response) {
   try {
@@ -110,6 +111,60 @@ export async function getCandidateInterviews(req: Request, res: Response) {
         limit,
         hasMore: interviews.length + interviewsNo.length === limit, // Check if there are more records
       },
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+}
+
+export async function editCandidateInterview(req: Request, res: Response) {
+  try {
+    const { id } = req.params; // Extract interview ID from params
+
+    // Validate the ID
+    if (!id) {
+      res.status(400).json({ message: "Interview ID is required" });
+      return;
+    }
+
+      // Validate input using Zod schema
+      const validation = editInterviewSchema.safeParse(req.body);
+      if (!validation.success) {
+        res.status(400).json({
+          message: "Validation error",
+          errors: validation.error.format(), // Send detailed error messages
+        });
+        return;
+      }
+  
+      const updatedData = validation.data; 
+
+    // Attempt to find and update in the first table
+    let updatedInterview = await InterviewModel.findByIdAndUpdate(id, updatedData, {
+      new: true, // Return the updated document
+    });
+
+    // If not found, attempt in the second table
+    if (!updatedInterview) {
+      updatedInterview = await InterviewModelNo.findByIdAndUpdate(id, updatedData, {
+        new: true, // Return the updated document
+      });
+    }
+
+    // If still not found, return 404
+    if (!updatedInterview) {
+      res.status(404).json({ message: "No interview found with the specified ID" });
+      return;
+    }
+
+    // Send the updated data in response
+    res.status(200).json({
+      message: "Interview details updated successfully",
+      data: updatedInterview,
     });
   } catch (error: any) {
     console.error(error);

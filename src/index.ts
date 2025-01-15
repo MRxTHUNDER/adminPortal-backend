@@ -6,6 +6,7 @@ import { PORT } from './config/config';
 import mongoConnect from './db/db';
 import adminRoute from './routes/Admin'
 import candidateRoute from './routes/Candidates'
+import interviewerRoute from './routes/Interviewers'
 
 dotenv.config();
 
@@ -30,6 +31,7 @@ app.use(bodyParser.urlencoded({
 
 app.use("/api/admin",adminRoute);
 app.use("/api/candidates",candidateRoute);
+app.use("/api/interviewers",interviewerRoute);
 
 app.get("/",(_req:Request,res:Response)=>{
     res.json({

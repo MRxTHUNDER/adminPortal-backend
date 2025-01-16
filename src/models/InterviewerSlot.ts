@@ -7,7 +7,8 @@ export interface InterviewerSlot extends Document{
     time:string,
     meetLink:string,
     feedback:string,
-    isVerified?:boolean
+    isVerified?:boolean,
+    candidateName?:string
 }
 
 const InterviewerSlotSchema=new Schema<InterviewerSlot>({
@@ -31,6 +32,11 @@ const InterviewerSlotSchema=new Schema<InterviewerSlot>({
     feedback:{
         type:String,
         default:""
+    },
+    candidateName:{
+        type:String,
+        default:"",
+        required:false
     },
     isVerified:{
         type:Boolean,

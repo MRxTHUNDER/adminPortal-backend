@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import InterviewerModel from "../models/InterviewerModel";
 import InterviewerSet from "../models/InterviewerSlot";
 import mongoose from "mongoose";
+import { updateSlotSchema } from "../zod/interviewer";
 
 export async function getInterviewers(req: Request, res: Response) {
   try {
@@ -114,6 +115,70 @@ export async function getInterviewerSlots (req:Request,res:Response) {
       message:"Internal Server Error",
       error:error.message || "Unknown error"
     })
+    return
+  }
+}
+
+// Update an interview slot
+export async function updateInterviewerSlot(req: Request, res: Response) {
+  try {
+    const { slotId } = req.params;
+
+    // Validate slotId
+    if (!slotId || !mongoose.Types.ObjectId.isValid(slotId)) {
+      res.status(400).json({
+        message: "Invalid or missing slotId.",
+      });
+      return
+    }
+
+    // Parse and validate request body with Zod
+    const parsedData = updateSlotSchema.safeParse(req.body);
+
+    if (!parsedData.success) {
+      // Return validation errors
+     res.status(400).json({
+        message: "Validation failed.",
+        errors: parsedData.error.format(),
+      });
+      return
+    }
+
+
+      // Update the interview slot
+      const updatedSlot = await InterviewerSet.findByIdAndUpdate(
+        slotId,
+        { $set: parsedData.data },
+        { new: true, runValidators: true } // Return updated document and validate
+      );
+  
+      if (!updatedSlot) {
+      res.status(404).json({
+          message: "Slot not found.",
+        });
+        return;
+      }
+
+    // If no slot was found
+    if (!updatedSlot) {
+    res.status(404).json({
+        message: "Slot not found.",
+      });
+      return;
+    }
+
+    // Return the updated slot
+    res.status(200).json({
+      message: "Slot updated successfully.",
+      data: updatedSlot,
+    });
+    return
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      message: "Internal server error",
+      error: error.message || "Unknown error",
+    });
     return
   }
 }

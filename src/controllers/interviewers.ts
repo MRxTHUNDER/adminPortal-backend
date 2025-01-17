@@ -25,6 +25,7 @@ export async function getInterviewers(req: Request, res: Response) {
 
     // Fetch data from the database
     const interviewers = await InterviewerModel.find()
+      .sort({ _id: -1 })
       .skip(skip)
       .limit(limitNum);
 
@@ -81,7 +82,7 @@ export async function getInterviewerSlots (req:Request,res:Response) {
      // Calculate skip value
      const skip = (page - 1) * limit;
 
-    const slots = await InterviewerSet.find({userId}).skip(skip).limit(limit);
+    const slots = await InterviewerSet.find({userId}).sort({ _id: -1 }).skip(skip).limit(limit);
 
     const totalSlots = await InterviewerSet.countDocuments({userId});
 

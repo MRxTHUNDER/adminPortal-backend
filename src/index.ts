@@ -7,6 +7,7 @@ import mongoConnect from './db/db';
 import adminRoute from './routes/Admin'
 import candidateRoute from './routes/Candidates'
 import interviewerRoute from './routes/Interviewers'
+import registeredCandidatesRoute from './routes/registeredCandidates'
 
 dotenv.config();
 
@@ -32,6 +33,7 @@ app.use(bodyParser.urlencoded({
 app.use("/api/admin",adminRoute);
 app.use("/api/candidates",candidateRoute);
 app.use("/api/interviewers",interviewerRoute);
+app.use("/api/register",registeredCandidatesRoute);
 
 app.get("/",(_req:Request,res:Response)=>{
     res.json({

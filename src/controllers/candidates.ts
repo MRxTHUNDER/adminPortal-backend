@@ -15,6 +15,7 @@ export async function getCandidates(req: Request, res: Response) {
 
     // Fetch candidates with pagination
     const candidates = await UserModel.find({ role: "candidate" })
+      .sort({ _id: -1 })
       .skip(skip)
       .limit(limit);
 
@@ -63,10 +64,12 @@ export async function getCandidateInterviews(req: Request, res: Response) {
 
     // Fetch data with pagination from both Interview collections
     const interviews = await InterviewModel.find({ userId: id })
+    .sort({ _id: -1 })
       .skip(skip)
       .limit(limit);
 
     const interviewsNo = await InterviewModelNo.find({ userId: id })
+    .sort({ _id: -1 })
       .skip(skip)
       .limit(limit);
 

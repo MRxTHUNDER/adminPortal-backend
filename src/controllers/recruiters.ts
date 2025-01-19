@@ -3,6 +3,7 @@ import UserModel from "../models/UserModel";
 import RecruiterEndToEndModel from "../models/RecruiterEndToEndModel";
 import RecruiterOnDemandModel from "../models/RecruiterOnDemandModel";
 import mongoose from "mongoose";
+import { updateRecruitmentSchema } from "../zod/recruiter";
 
 export async function getRecruiters(req: Request, res: Response) {
   try {
@@ -100,6 +101,7 @@ export const getRecruitmentsByUserId = async (req: Request, res: Response) => {
       // Merge data into the required structure
       const combinedRecruitments = [
         ...endToEndRecruitments.map((recruitment) => ({
+          id:recruitment._id,
           jobDescription: recruitment.jobDescription || null,
           jobProfile: recruitment.jobProfile || null,
           lastDate: recruitment.lastDate || null,
@@ -111,6 +113,7 @@ export const getRecruitmentsByUserId = async (req: Request, res: Response) => {
           submittedCandidates: null, // EndToEnd doesn't have candidates or submitted feedback
         })),
         ...onDemandRecruitments.map((recruitment) => ({
+          id:recruitment._id,
           jobDescription: recruitment.jobDescription || null,
           jobProfile: recruitment.jobProfile || null,
           lastDate: recruitment.lastDate || null,
@@ -152,3 +155,69 @@ export const getRecruitmentsByUserId = async (req: Request, res: Response) => {
     }
   };
   
+
+
+
+export const updateRecruitmentDetailsByInterviewId = async (req: Request, res: Response) => {
+  try {
+    const { interviewId } = req.params; // Extract the interviewId from the URL params
+    const updates = req.body; // Extract the fields to update from the request body
+
+    if (!interviewId) {
+     res.status(400).json({ message: "Interview ID is required" });
+     return
+    }
+
+    // Validate the input using the Zod schema
+    const parsedUpdates = updateRecruitmentSchema.safeParse(updates);
+
+    if (!parsedUpdates.success) {
+       res.status(400).json({
+        message: "Invalid input",
+        errors: parsedUpdates.error.errors,
+      });
+      return;
+    }
+
+    // Define a helper function to find and update in a given model
+    const findAndUpdate = async (Model: any, id: string, data: any) => {
+      return await Model.findOneAndUpdate({ _id: id }, data, { new: true });
+    };
+
+    // Try updating in RecruiterOnDemandModel first
+    let updatedRecord = await findAndUpdate(
+      RecruiterOnDemandModel,
+      interviewId,
+      parsedUpdates.data
+    );
+
+    if (!updatedRecord) {
+      // If not found in RecruiterOnDemandModel, try in RecruiterEndToEndModel
+      updatedRecord = await findAndUpdate(
+        RecruiterEndToEndModel,
+        interviewId,
+        parsedUpdates.data
+      );
+    }
+
+    if (!updatedRecord) {
+      // If not found in either model, return a 404
+    res.status(404).json({ message: "Interview not found in any schema" });
+    return
+    }
+
+    // If updated, return the updated record
+     res.status(200).json({
+      message: "Interview details updated successfully",
+      data: updatedRecord,
+    });
+    return
+  } catch (error: any) {
+    console.error(error);
+     res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
+    return     
+  }
+};

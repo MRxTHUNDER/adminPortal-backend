@@ -8,6 +8,7 @@ import adminRoute from './routes/Admin'
 import candidateRoute from './routes/Candidates'
 import interviewerRoute from './routes/Interviewers'
 import registeredCandidatesRoute from './routes/registeredCandidates'
+import recruiterRoute from './routes/Recruiters'
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use("/api/admin",adminRoute);
 app.use("/api/candidates",candidateRoute);
 app.use("/api/interviewers",interviewerRoute);
 app.use("/api/register",registeredCandidatesRoute);
+app.use("/api/recruiters",recruiterRoute);
 
 app.get("/",(_req:Request,res:Response)=>{
     res.json({

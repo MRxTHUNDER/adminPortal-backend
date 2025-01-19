@@ -11,6 +11,7 @@ export interface RecruiterEndToEnd extends Document{
     seniorityLevel:string,
     jobDescriptionFILE?:string,
     progress?:string,
+    candidateName?:string[],
     feedback?:string
 }
 
@@ -52,6 +53,15 @@ const RecruiterEndToEndSchema=new Schema<RecruiterEndToEnd>({
     progress:{
         type:String
     },
+    candidateName:{
+        type:[String],
+        required:false,
+        default:[],
+        validate: {
+         validator: (value: string[]) => Array.isArray(value) && value.every((name) => typeof name === 'string'),
+         message: "candidateName must be an array of strings",
+       },
+       },
     feedback:{
         type:String,
         required:false,

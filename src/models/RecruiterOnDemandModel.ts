@@ -17,7 +17,8 @@ export interface RecruiterOnDemand extends Document {
   jobLocation:string,
   rubricsJobProfile: string[];
   seniorityLevel: string;
-  candidates: Candidate[];// Array of candidates (required)
+  candidates: Candidate[];
+  candidateName?:string[];
   feedback?:string; 
 }
 
@@ -91,6 +92,15 @@ const RecruiterOnDemandSchema = new Schema<RecruiterOnDemand>({
     type:String,
     required:false,
     default:""
+},
+candidateName:{
+ type:[String],
+ required:false,
+ default:[],
+ validate: {
+  validator: (value: string[]) => Array.isArray(value) && value.every((name) => typeof name === 'string'),
+  message: "candidateName must be an array of strings",
+},
 },
   candidates: {
     type: [CandidateSchema],

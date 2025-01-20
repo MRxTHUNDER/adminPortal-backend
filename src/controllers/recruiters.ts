@@ -221,3 +221,39 @@ export const updateRecruitmentDetailsByInterviewId = async (req: Request, res: R
     return     
   }
 };
+
+
+export const getCandidatesByRecruitmentId = async (req: Request, res: Response) => {
+  try {
+    const { recruitmentId } = req.params;
+
+    if (!recruitmentId) {
+      res.status(400).json({ message: "Recruitment ID is required" });
+      return;
+    }
+
+    // Query to fetch only the candidates field
+    const recruitment = await RecruiterOnDemandModel.findOne(
+      { _id: recruitmentId },
+      { candidates: 1, _id: 0 } // Projection: Include only `candidates`, exclude `_id`
+    );
+
+    if (!recruitment) {
+      res.status(404).json({ message: "Recruitment not found" });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Candidates fetched successfully",
+      candidates: recruitment.candidates,
+    });
+    return
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
+    return
+  }
+};

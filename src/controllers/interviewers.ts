@@ -11,12 +11,16 @@ export async function getInterviewers(req: Request, res: Response) {
     const limitNum = parseInt(req.query.limit as string) || 10; // Default to 10 items per page
 
     if (isNaN(pageNum) || pageNum <= 0) {
-      res.status(400).json({ message: "Invalid page number. Must be a positive integer." });
+      res
+        .status(400)
+        .json({ message: "Invalid page number. Must be a positive integer." });
       return;
     }
 
     if (isNaN(limitNum) || limitNum <= 0) {
-      res.status(400).json({ message: "Invalid limit. Must be a positive integer." });
+      res
+        .status(400)
+        .json({ message: "Invalid limit. Must be a positive integer." });
       return;
     }
 
@@ -57,48 +61,63 @@ export async function getInterviewers(req: Request, res: Response) {
   }
 }
 
-export async function getInterviewerSlots (req:Request,res:Response) {
+export async function getInterviewerSlots(req: Request, res: Response) {
   try {
-    const {userId} = req.params;
+    const { userId } = req.params;
 
-    if(!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
       res.status(400).json({
-        message:"Invalid or missing userId"
+        message: "Invalid or missing userId",
       });
-      return
+      return;
     }
 
-     // Extract pagination parameters from query
-     const page = parseInt(req.query.page as string) || 1; // Default to page 1
-     const limit = parseInt(req.query.limit as string) || 10; // Default to 10 items per page
- 
-     if (page <= 0 || limit <= 0) {
-        res.status(400).json({
-         message: "Page and limit must be positive integers.",
-       });
-       return;
-     }
- 
-     // Calculate skip value
-     const skip = (page - 1) * limit;
-
-    const slots = await InterviewerSet.find({userId}).sort({ _id: -1 }).skip(skip).limit(limit);
-
-    const totalSlots = await InterviewerSet.countDocuments({userId});
-
-    const totalPages = Math.ceil(totalSlots/limit);
-
-    if(slots.length === 0) {
+    // Fetch the interviewer details
+    const interviewer = await InterviewerModel.findById(userId);
+    if (!interviewer) {
       res.status(404).json({
-        message:"No interview slots found for the specified userId"
-      })
-      return
+        message: "Interviewer not found",
+      });
+      return;
     }
 
-  res.status(200).json({
+    // Extract pagination parameters from query
+    const page = parseInt(req.query.page as string) || 1; // Default to page 1
+    const limit = parseInt(req.query.limit as string) || 10; // Default to 10 items per page
+
+    if (page <= 0 || limit <= 0) {
+      res.status(400).json({
+        message: "Page and limit must be positive integers.",
+      });
+      return;
+    }
+
+    // Calculate skip value
+    const skip = (page - 1) * limit;
+
+    const slots = await InterviewerSet.find({ userId })
+      .sort({ _id: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalSlots = await InterviewerSet.countDocuments({ userId });
+
+    const totalPages = Math.ceil(totalSlots / limit);
+
+
+    // Add the interviewer name to each slot
+    const slotsWithInterviewer = slots.map((slot) => ({
+      ...slot.toObject(),
+      interviewerName: interviewer.full_name,
+      jobProfile:interviewer.mainIndustry, // Adding interviewer's name
+    }));
+
+    res.status(200).json({
       message: "Success",
       data: {
-        slots,
+        interviewerName: interviewer.full_name,
+        jobProfile:interviewer.mainIndustry,
+        interviews:slotsWithInterviewer,
         pagination: {
           totalSlots,
           totalPages,
@@ -109,14 +128,13 @@ export async function getInterviewerSlots (req:Request,res:Response) {
     });
 
     return;
-    
-  } catch (error:any) {
-    console.log('error: ',error);
+  } catch (error: any) {
+    console.log("error: ", error);
     res.status(500).json({
-      message:"Internal Server Error",
-      error:error.message || "Unknown error"
-    })
-    return
+      message: "Internal Server Error",
+      error: error.message || "Unknown error",
+    });
+    return;
   }
 }
 
@@ -130,7 +148,7 @@ export async function updateInterviewerSlot(req: Request, res: Response) {
       res.status(400).json({
         message: "Invalid or missing slotId.",
       });
-      return
+      return;
     }
 
     // Parse and validate request body with Zod
@@ -138,31 +156,30 @@ export async function updateInterviewerSlot(req: Request, res: Response) {
 
     if (!parsedData.success) {
       // Return validation errors
-     res.status(400).json({
+      res.status(400).json({
         message: "Validation failed.",
         errors: parsedData.error.format(),
       });
-      return
+      return;
     }
 
+    // Update the interview slot
+    const updatedSlot = await InterviewerSet.findByIdAndUpdate(
+      slotId,
+      { $set: parsedData.data },
+      { new: true, runValidators: true } // Return updated document and validate
+    );
 
-      // Update the interview slot
-      const updatedSlot = await InterviewerSet.findByIdAndUpdate(
-        slotId,
-        { $set: parsedData.data },
-        { new: true, runValidators: true } // Return updated document and validate
-      );
-  
-      if (!updatedSlot) {
+    if (!updatedSlot) {
       res.status(404).json({
-          message: "Slot not found.",
-        });
-        return;
-      }
+        message: "Slot not found.",
+      });
+      return;
+    }
 
     // If no slot was found
     if (!updatedSlot) {
-    res.status(404).json({
+      res.status(404).json({
         message: "Slot not found.",
       });
       return;
@@ -173,13 +190,13 @@ export async function updateInterviewerSlot(req: Request, res: Response) {
       message: "Slot updated successfully.",
       data: updatedSlot,
     });
-    return
+    return;
   } catch (error: any) {
     console.error(error);
     res.status(500).json({
       message: "Internal server error",
       error: error.message || "Unknown error",
     });
-    return
+    return;
   }
 }

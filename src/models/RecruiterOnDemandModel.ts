@@ -20,6 +20,7 @@ export interface RecruiterOnDemand extends Document {
   candidates: Candidate[];
   candidateName?:string[];
   feedback?:string; 
+  progress?:string;
 }
 
 
@@ -88,6 +89,11 @@ const RecruiterOnDemandSchema = new Schema<RecruiterOnDemand>({
     type: String,
     required: true,
   },
+  progress:{
+    type:String,
+    default:"Profile Received",
+    required:false
+},
   feedback:{
     type:String,
     required:false,

@@ -134,8 +134,12 @@ export const getRecruitmentsByUserId = async (req: Request, res: Response) => {
           candidateName:recruitment.candidateName,
           progress:recruitment.progress,
           submittedCandidates: recruitment.candidates.map((candidate) => ({
+            id: candidate._id,
             name: candidate.candidateFullName,
             companyName: candidate.companyName,
+            phoneNumber:candidate.phoneNumber,
+            email:candidate.email,
+            resume:candidate.resume
           })) || null,
         })),
       ];
@@ -149,7 +153,8 @@ export const getRecruitmentsByUserId = async (req: Request, res: Response) => {
         message: "Success",
         recruiter:{
         name:recruiter.name,
-        email:recruiter.email
+        email:recruiter.email,
+        companyname:recruiter.companyname
         },
         data: combinedRecruitments,
         pagination: {

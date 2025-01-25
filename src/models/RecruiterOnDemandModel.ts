@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface Candidate {
+  _id:string;
   candidateFullName: string;
   companyName: string;
   phoneNumber: string;

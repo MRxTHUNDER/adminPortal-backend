@@ -84,6 +84,15 @@ export const getRecruitmentsByUserId = async (req: Request, res: Response) => {
           return
       }
   
+      const recruiter = await UserModel.findById(userId);
+
+      if(!recruiter) {
+        res.status(404).json({
+          message:"No recruiter find by this recruiter id"
+        })
+        return
+      }
+
       // Fetch data from both models and calculate total counts
       const [endToEndRecruitments, onDemandRecruitments, endToEndCount, onDemandCount] = await Promise.all([
         RecruiterEndToEndModel.find({ userId })
@@ -111,6 +120,7 @@ export const getRecruitmentsByUserId = async (req: Request, res: Response) => {
           feedback: recruitment.feedback || null,
           candidateName:recruitment.candidateName,
           submittedCandidates: null, // EndToEnd doesn't have candidates or submitted feedback
+          progress:recruitment.progress
         })),
         ...onDemandRecruitments.map((recruitment) => ({
           id:recruitment._id,
@@ -122,6 +132,7 @@ export const getRecruitmentsByUserId = async (req: Request, res: Response) => {
           seniorityLevel: recruitment.seniorityLevel || null,
           feedback: recruitment.feedback || null,
           candidateName:recruitment.candidateName,
+          progress:recruitment.progress,
           submittedCandidates: recruitment.candidates.map((candidate) => ({
             name: candidate.candidateFullName,
             companyName: candidate.companyName,
@@ -136,6 +147,10 @@ export const getRecruitmentsByUserId = async (req: Request, res: Response) => {
       // Return the response
     res.status(200).json({
         message: "Success",
+        recruiter:{
+        name:recruiter.name,
+        email:recruiter.email
+        },
         data: combinedRecruitments,
         pagination: {
           totalRecords,

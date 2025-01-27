@@ -11,5 +11,6 @@ export const updateRecruitmentSchema = z.object({
   rubricsJobProfile: z.array(z.string()).optional(),
   seniorityLevel: z.string().optional(),
   feedback: z.string().optional(),
+  progress:z.string().optional(),
   candidateName: z.array(z.string()).optional(),
 });

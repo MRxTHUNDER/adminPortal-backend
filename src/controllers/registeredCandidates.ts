@@ -26,7 +26,7 @@ export const getRegisteredCandidates = async (req: Request, res: Response) => {
     const skip = (page - 1) * limit;
 
     // Fetch candidates with sorting, pagination, and selecting specific fields
-    const candidates = await RegisteredCandidatesModel.find({}, "_id name currentOrg")
+    const candidates = await RegisteredCandidatesModel.find({}, "_id name currentOrg experiencedDomain")
       .sort({ _id: -1 }) // Sort by most recent (_id descending)
       .skip(skip)
       .limit(limit);

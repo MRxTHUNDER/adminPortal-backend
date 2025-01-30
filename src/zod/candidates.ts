@@ -14,11 +14,10 @@ export const editInterviewSchema = z.object({
     .optional(),
   date: z
     .string()
-    .regex(/^\d{2}\/\d{2}\/\d{4}$/, "Date must be in the format DD/MM/YYYY")
     .optional(),
   timeSlots: z.string().optional(),
   pricingPlans: z.string().optional(),
-  meetLink: z.string().url("Invalid meet link URL").optional(),
+  meetLink: z.string().optional(),
   feedbackReport: z.string().optional(),
   resume: z.string().optional(),
   isVerified: z.boolean().optional(),

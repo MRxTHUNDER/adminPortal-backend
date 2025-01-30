@@ -3,6 +3,7 @@ import UserModel from "../models/UserModel";
 import InterviewModel from "../models/InterviewModel";
 import InterviewModelNo from "../models/InterviewModelNo";
 import { editInterviewSchema } from "../zod/candidates";
+import mongoose from "mongoose";
 
 export async function getCandidates(req: Request, res: Response) {
   try {
@@ -46,83 +47,85 @@ export async function getCandidates(req: Request, res: Response) {
   }
 }
 
+// Define a common type for interviews
+interface Interview {
+  _id: mongoose.Types.ObjectId;
+  organization: string[];
+  jobProfile: string;
+  date: string;
+  timeSlots: string;
+  pricingPlans: string;
+  meetLink: string;
+  feedbackReport: string;
+  resume: string;
+  seniorityLevel: string;
+  isVerified: boolean;
+}
+
 export async function getCandidateInterviews(req: Request, res: Response) {
   try {
-    // Extract user ID, page, and limit from the request
+    // Extract user ID, page, and limit from request
     const { id } = req.params;
-    const page = parseInt(req.query.page as string) || 1; // Default to page 1
-    const limit = parseInt(req.query.limit as string) || 10; // Default to 10 items per page
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10; // Total number of records per page
 
-    // Validate the user ID
-    if (!id) {
-      res.status(400).json({ message: "User ID is required" });
-      return;
+    // Validate user ID
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+       res.status(400).json({ message: "Invalid or missing User ID" });
+       return
     }
 
-    // Calculate the number of records to skip
-    const skip = (page - 1) * limit;
-
-    // Fetch data with pagination from both Interview collections
-    const interviews = await InterviewModel.find({ userId: id })
-    .sort({ _id: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    const interviewsNo = await InterviewModelNo.find({ userId: id })
-    .sort({ _id: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    // If no records are found
-    if (!interviews.length && !interviewsNo.length) {
-      res.status(404).json({ message: "No more interviews found" });
-      return;
+    // Fetch user details
+    const user = await UserModel.findById(id);
+    if (!user) {
+       res.status(404).json({ message: "No user found with this ID" });
+       return
     }
 
-    // Combine data from both collections
-    const mergedInterviews = [
-      ...interviews.map((interview) => ({
-        organization: interview.organization,
-        jobProfile: interview.jobProfile,
-        date: interview.date,
-        timeSlots: interview.timeSlots,
-        pricingPlans: interview.pricingPlans,
-        meetLink: interview.meetLink,
-        feedbackReport: interview.feedbackReport,
-        resume: interview.resume,
-        isVerified: interview.isVerified,
-      })),
-      ...interviewsNo.map((interviewNo) => ({
-        organization: interviewNo.organization,
-        jobProfile: interviewNo.jobProfile,
-        date: interviewNo.date,
-        timeSlots: interviewNo.timeSlots,
-        pricingPlans: interviewNo.pricingPlans,
-        meetLink: interviewNo.meetLink,
-        feedbackReport: interviewNo.feedbackReport,
-        resume: interviewNo.resume,
-        isVerified: interviewNo.isVerified,
-      })),
-    ];
+    // Fetch all interviews from both collections (without skip/limit)
+    const [allInterviews, allInterviewsNo] = await Promise.all([
+      InterviewModel.find({ userId: id }).sort({ _id: -1 }).lean<Interview[]>(),
+      InterviewModelNo.find({ userId: id }).sort({ _id: -1 }).lean<Interview[]>(),
+    ]);
+    // Merge and sort interviews based on `_id` timestamp (latest first)
+    const mergedInterviews: Interview[] = [...allInterviews, ...allInterviewsNo].sort(
+      (a, b) => b._id.getTimestamp().getTime() - a._id.getTimestamp().getTime()
+    );
 
-    // Send response
-    res.status(200).json({
+    // Calculate total records after merging
+    const totalRecords = mergedInterviews.length;
+    const totalPages = Math.ceil(totalRecords / limit);
+
+    // Apply pagination to merged data
+    const paginatedInterviews = mergedInterviews.slice((page - 1) * limit, page * limit);
+
+    // Check if there's a next page
+    const hasMore = page < totalPages;
+
+     res.status(200).json({
       message: "Success",
-      data: mergedInterviews,
+      email: user.email,
+      name: user.name,
+      data: paginatedInterviews,
       pagination: {
-        page,
-        limit,
-        hasMore: interviews.length + interviewsNo.length === limit, // Check if there are more records
+        totalRecords,
+        totalPages,
+        currentPage: page,
+        pageSize: limit,
+        hasMore,
       },
     });
+    return
   } catch (error: any) {
-    console.error(error);
+    console.error("Error fetching candidate interviews:", error.message);
     res.status(500).json({
       message: "Internal server error",
       error: error.message,
     });
+    return
   }
 }
+
 
 export async function editCandidateInterview(req: Request, res: Response) {
   try {

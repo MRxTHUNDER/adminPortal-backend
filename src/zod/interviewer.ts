@@ -5,7 +5,7 @@ export const updateSlotSchema = z.object({
     .string()
     .optional(),
   time: z.string().optional(),
-  meetLink: z.string().url("Invalid URL format.").optional(),
+  meetLink: z.string().optional(),
   feedback: z.string().optional(),
   isVerified: z.boolean().optional(),
   candidateName: z.string().optional(),

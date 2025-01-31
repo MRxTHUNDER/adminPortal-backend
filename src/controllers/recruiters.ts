@@ -120,7 +120,8 @@ export const getRecruitmentsByUserId = async (req: Request, res: Response) => {
           feedback: recruitment.feedback || null,
           candidateName:recruitment.candidateName,
           submittedCandidates: null, // EndToEnd doesn't have candidates or submitted feedback
-          progress:recruitment.progress
+          progress:recruitment.progress,
+          type:"end to end"
         })),
         ...onDemandRecruitments.map((recruitment) => ({
           id:recruitment._id,
@@ -133,6 +134,7 @@ export const getRecruitmentsByUserId = async (req: Request, res: Response) => {
           feedback: recruitment.feedback || null,
           candidateName:recruitment.candidateName,
           progress:recruitment.progress,
+          type:"onDemand",
           submittedCandidates: recruitment.candidates.map((candidate) => ({
             id: candidate._id,
             name: candidate.candidateFullName,

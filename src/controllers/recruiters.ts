@@ -121,6 +121,7 @@ export const getRecruitmentsByUserId = async (req: Request, res: Response) => {
           candidateName:recruitment.candidateName,
           submittedCandidates: null, // EndToEnd doesn't have candidates or submitted feedback
           progress:recruitment.progress,
+          jobDescriptionFile:recruitment.jobDescriptionFILE,
           type:"end to end"
         })),
         ...onDemandRecruitments.map((recruitment) => ({

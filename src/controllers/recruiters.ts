@@ -135,6 +135,7 @@ export const getRecruitmentsByUserId = async (req: Request, res: Response) => {
           feedback: recruitment.feedback || null,
           candidateName:recruitment.candidateName,
           progress:recruitment.progress,
+          jobDescriptionFile:recruitment.jobDescriptionFILE,
           type:"onDemand",
           submittedCandidates: recruitment.candidates.map((candidate) => ({
             id: candidate._id,

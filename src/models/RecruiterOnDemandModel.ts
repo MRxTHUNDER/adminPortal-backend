@@ -20,6 +20,7 @@ export interface RecruiterOnDemand extends Document {
   seniorityLevel: string;
   candidates: Candidate[];
   candidateName?:string[];
+  jobDescriptionFILE?:string,
   feedback?:string; 
   progress?:string;
 }
@@ -108,6 +109,9 @@ candidateName:{
   validator: (value: string[]) => Array.isArray(value) && value.every((name) => typeof name === 'string'),
   message: "candidateName must be an array of strings",
 },
+},
+jobDescriptionFILE:{
+  type:String
 },
   candidates: {
     type: [CandidateSchema],

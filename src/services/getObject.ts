@@ -1,6 +1,6 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import dotenv from 'dotenv'
+import { CLOUDFRONT_URL } from "../config/config";
 dotenv.config();
 
 const s3Client = new S3Client({
@@ -21,6 +21,6 @@ if (!command){
     throw new Error("Object doesnt exists")
 }
 
-const url = getSignedUrl(s3Client,command,{expiresIn:180});
+const url = `${CLOUDFRONT_URL}/${key}`
 return url;
 }

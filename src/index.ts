@@ -10,6 +10,7 @@ import interviewerRoute from './routes/Interviewers'
 import registeredCandidatesRoute from './routes/registeredCandidates'
 import recruiterRoute from './routes/Recruiters'
 import s3Route from './routes/s3';
+import discountRoute from "./routes/Discount"
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ app.use("/api/candidates",candidateRoute);
 app.use("/api/interviewers",interviewerRoute);
 app.use("/api/register",registeredCandidatesRoute);
 app.use("/api/recruiters",recruiterRoute);
+app.use("/api/discount",discountRoute)
 app.use("/api/s3",s3Route);
 
 app.get("/",(_req:Request,res:Response)=>{
